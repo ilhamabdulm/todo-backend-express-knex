@@ -1,37 +1,58 @@
 const _ = require('lodash');
 
 const projects = require('../repositories/project.repository');
+const users = require('../repositories/user.repository');
 const { addErrorReporting } = require('../utils/helper');
 
 async function getAllProject(req, res) {
   const user = req.user;
-  const allEntries = await projects.allByUser(user.id);
-  return res.status(200).json(allEntries);
+  const allEntries = await projects.allByUser(user.decoded.id);
+  return res.status(200).json({ message: 'success', data: allEntries });
 }
 
 async function getProjectByid(req, res) {
-  const todo = await projects.getById(req.params.id);
-  return res.status(200).json(todo);
+  const project = await projects.getById(req.params.id);
+  return res.status(200).json({ message: 'success', data: project });
 }
 
-async function postTodo(req, res) {
-  const created = await todos.create(
-    req.body.title,
-    req.body.order,
-    req.body.project_id,
-    null
-  );
-  return res.status(200).json(createToDo(req, created));
+async function postProject(req, res) {
+  const user = req.user;
+  let body = req.body;
+  const created = await projects.create(body.name, user.decoded.id);
+  return res.status(200).json({ message: 'success', data: created });
 }
 
-async function patchTodo(req, res) {
-  const patched = await todos.update(req.params.id, req.body);
-  return res.status(200).json(createToDo(req, patched));
+async function patchProject(req, res) {
+  const patched = await projects.update(req.params.id, req.body);
+  return res.status(200).json({ message: 'success', data: patched });
 }
 
 async function deleteProject(req, res) {
   const deleted = await projects.delete(req.params.id);
-  return res.status(200).json(createToDo(req, deleted));
+  return res.status(200).json({ message: 'success', data: deleted });
+}
+
+async function postProjectInviteUser(req, res) {
+  let body = req.body;
+
+  const userExist = await users.getByEmail(body.email);
+
+  if (!userExist) {
+    return res.status(400).json({ message: 'User doesnt exists' });
+  }
+
+  const projectExist = await projects.getById(body.project_id);
+
+  if (!projectExist) {
+    return res.status(400).json({ message: 'Project doesnt exists' });
+  }
+
+  const created = await projects.assignProjectUser(
+    projectExist.id,
+    userExist.id
+  );
+
+  return res.status(200).json({ message: 'success', data: created });
 }
 
 module.exports = {
@@ -40,8 +61,11 @@ module.exports = {
     'Failed to fetch all projects'
   ),
   deleteProject: addErrorReporting(deleteProject, 'Failed to delete projects'),
-  getProjectByid: addErrorReporting(
-    getProjectByid,
-    'Failed to fetch projects'
+  getProjectByid: addErrorReporting(getProjectByid, 'Failed to fetch projects'),
+  postProject: addErrorReporting(postProject, 'Failed to create projects'),
+  patchProject: addErrorReporting(patchProject, 'Failed to update projects'),
+  postProjectInviteUser: addErrorReporting(
+    postProjectInviteUser,
+    'Failed invite to projects'
   ),
 };

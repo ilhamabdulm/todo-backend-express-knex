@@ -5,7 +5,10 @@ async function all() {
 }
 
 async function allByUser(user_id) {
-  return knex('projects').where({ user_id });
+  return knex('projects_users')
+    .select('projects.*', 'projects_users.user_id', 'projects_users.project_id')
+    .join('projects', 'projects_users.project_id', '=', 'projects.id')
+    .where('projects_users.user_id', user_id);
 }
 
 async function getById(id) {
@@ -13,11 +16,13 @@ async function getById(id) {
   return results[0];
 }
 
-async function create(title, user_id) {
+async function create(name, user_id) {
   const results = await knex('projects')
-    .insert({ title, user_id })
+    .insert({ name, user_id })
     .returning('*');
-  return results[0];
+  const project = results[0];
+  await knex('projects_users').insert({ project_id: project.id, user_id });
+  return project;
 }
 
 async function update(id, properties) {
@@ -34,6 +39,13 @@ async function del(id) {
   return results[0];
 }
 
+async function assignProjectUser(project_id, user_id) {
+  const project = await knex('projects_users')
+    .insert({ project_id, user_id })
+    .returning('*');
+  return project[0];
+}
+
 module.exports = {
   all,
   getById,
@@ -41,4 +53,5 @@ module.exports = {
   update,
   delete: del,
   allByUser,
+  assignProjectUser,
 };

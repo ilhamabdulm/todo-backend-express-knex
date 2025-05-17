@@ -5,6 +5,7 @@ const express = require('express');
 module.exports = () => {
   return new express.Router()
     .use(authorization)
+    .patch('/:id/assign-user', ctrl.patchAssignUser)
     .get('/', ctrl.getAllTodos)
     .get('/:id', ctrl.getTodo)
 

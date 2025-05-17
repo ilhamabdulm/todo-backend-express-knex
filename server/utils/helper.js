@@ -4,10 +4,13 @@ function createToDo(req, data) {
     id = data.id;
 
   return {
+    id: data.id,
     title: data.title,
     order: data.order,
     completed: data.completed || false,
-    url: `${protocol}://${host}/${id}`,
+    user_id: data.user_id || null,
+    project_id: data.project_id,
+    url: `${protocol}://${host}/todo/${id}`,
   };
 }
 

@@ -4,6 +4,21 @@ async function all() {
   return knex('todos');
 }
 
+async function allByProject(project_id) {
+  return knex('todos')
+    .select(
+      'todos.*',
+      'users.id as user_id',
+      'users.name as user_name',
+      'users.email as user_email',
+      'projects.id as project_id',
+      'projects.name as project_name'
+    )
+    .leftJoin('users', 'todos.user_id', '=', 'users.id')
+    .leftJoin('projects', 'todos.project_id', '=', 'projects.id')
+    .where('todos.project_id', project_id);
+}
+
 async function get(id) {
   const results = await knex('todos').where({ id });
   return results[0];
@@ -41,4 +56,5 @@ module.exports = {
   update,
   delete: del,
   clear,
+  allByProject,
 };
