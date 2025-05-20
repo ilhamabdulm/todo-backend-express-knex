@@ -19,6 +19,7 @@ function addErrorReporting(func, message) {
     try {
       return await func(req, res);
     } catch (err) {
+      console.log({ err });
       console.log(`${message} caused by: ${err}`);
 
       // Not always 500, but for simplicity's sake.
